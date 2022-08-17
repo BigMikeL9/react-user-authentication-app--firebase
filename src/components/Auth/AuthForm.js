@@ -1,14 +1,36 @@
 import { useState, useRef } from "react";
+import { initializeApp } from "firebase/app";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+
 import classes from "./AuthForm.module.css";
 
-// we get API key from firbase > Project setting > Web API Key
-const API_KEY = "AIzaSyDIpWgPHDqhtlzFIAYEuBDk5ZFEUtJelNA";
-const SIGN_UP_API = `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${API_KEY}`;
+// Your web app's Firebase configuration
+const firebaseConfig = {
+  apiKey: "AIzaSyCUXasgay7Kzr8nToCUZyOZziUGhBcf-HU",
+  authDomain: "react-authentication-app-ea73b.firebaseapp.com",
+  projectId: "react-authentication-app-ea73b",
+  storageBucket: "react-authentication-app-ea73b.appspot.com",
+  messagingSenderId: "838042641546",
+  appId: "1:838042641546:web:ec4b2c361c6ac5d9a27973",
+};
 
 const AuthForm = () => {
   const [isLogin, setIsLogin] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
+
   const emailInputRef = useRef();
   const passwordInputRef = useRef();
+
+  // ---- Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+
+  // ---- Initialize Firebase Authentication and get a reference to the service
+  const auth = getAuth(app);
+  // console.log(auth);
 
   const switchAuthModeHandler = () => {
     setIsLogin((prevState) => !prevState);
@@ -20,35 +42,35 @@ const AuthForm = () => {
     const enteredEmail = emailInputRef.current.value;
     const enteredPassword = passwordInputRef.current.value;
 
+    setIsLoading(true);
+
     // --- signup new user - mode
     if (!isLogin) {
-      const newUserInfo = {
-        email: enteredEmail,
-        password: enteredPassword,
-        returnSecureToken: true,
-      };
-
-      console.log(newUserInfo);
-
       try {
-        const response = await fetch(SIGN_UP_API, {
-          method: "POST",
-          body: JSON.stringify(newUserInfo),
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
+        const response = await createUserWithEmailAndPassword(
+          auth,
+          enteredEmail,
+          enteredPassword
+        );
 
-        if (!response.ok)
-          throw new Error(
-            `🛑🛑🛑 ERROR ERROR ERROR!!! ${response.status} 🛑🛑🛑`
-          );
+        console.log(response);
 
-        const data = await response.json();
+        const user = response.user;
+        console.log(user);
 
-        console.log(data);
+        setIsLoading(false);
       } catch (error) {
-        console.log(error.message);
+        // show error modal
+
+        const errorCode = error?.code;
+        const errorMessage = error?.message || "Authentication Failed!!";
+
+        console.log("Error Code 👉 ", errorCode);
+        console.log("Error Message 👉 ", errorMessage);
+
+        alert(`🛑 ${errorCode} 🛑`);
+
+        setIsLoading(false);
       }
     }
 
@@ -74,8 +96,13 @@ const AuthForm = () => {
             required
           />
         </div>
+
         <div className={classes.actions}>
-          <button>{isLogin ? "Login" : "Create Account"}</button>
+          {isLoading && <p>Sending Request...</p>}
+          {!isLoading && (
+            <button>{isLogin ? "Login" : "Create Account"}</button>
+          )}
+
           <button
             type="button"
             className={classes.toggle}
