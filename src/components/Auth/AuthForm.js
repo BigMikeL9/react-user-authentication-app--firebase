@@ -6,6 +6,9 @@ import {
   signInWithEmailAndPassword,
 } from "firebase/auth";
 
+import { useSelector, useDispatch } from "react-redux";
+import { authActions } from "../../store/authSlice";
+
 import classes from "./AuthForm.module.css";
 
 // Your web app's Firebase configuration
@@ -25,6 +28,11 @@ const AuthForm = () => {
   const emailInputRef = useRef();
   const passwordInputRef = useRef();
 
+  // ------ Redux Store ------
+  const authStore = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  // -------------------------
+
   // ---- Initialize Firebase
   const app = initializeApp(firebaseConfig);
 
@@ -42,23 +50,21 @@ const AuthForm = () => {
     const enteredEmail = emailInputRef.current.value;
     const enteredPassword = passwordInputRef.current.value;
 
+    console.log("Email:", enteredEmail);
+    console.log("Password:", enteredPassword);
+
     setIsLoading(true);
 
-    // --- signup new user - mode
-    if (!isLogin) {
+    // ---- Send HTTP request Helper function ----
+    const sendRequest = async (callback) => {
       try {
-        const response = await createUserWithEmailAndPassword(
-          auth,
-          enteredEmail,
-          enteredPassword
-        );
+        const response = await callback(auth, enteredEmail, enteredPassword);
 
-        console.log(response);
-
-        const user = response.user;
-        console.log(user);
+        // console.log(response);
 
         setIsLoading(false);
+
+        return response;
       } catch (error) {
         // show error modal
 
@@ -72,10 +78,27 @@ const AuthForm = () => {
 
         setIsLoading(false);
       }
+    };
+    // -------------------------------------------
+
+    // --- signup new user - mode
+    if (!isLogin) {
+      sendRequest(createUserWithEmailAndPassword);
     }
 
     // --- LOGIN - mode
     if (isLogin) {
+      const response = await sendRequest(signInWithEmailAndPassword);
+
+      const userIdToken = response._tokenResponse.idToken;
+
+      dispatch(
+        authActions.login({
+          idToken: userIdToken,
+          enteredEmail,
+          enteredPassword,
+        })
+      );
     }
   };
 
