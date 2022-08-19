@@ -8,6 +8,7 @@ import {
 
 import { useSelector, useDispatch } from "react-redux";
 import { authActions } from "../../store/authSlice";
+import { useHistory } from "react-router-dom";
 
 import classes from "./AuthForm.module.css";
 
@@ -22,6 +23,8 @@ const firebaseConfig = {
 };
 
 const AuthForm = () => {
+  const history = useHistory();
+
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -50,9 +53,6 @@ const AuthForm = () => {
     const enteredEmail = emailInputRef.current.value;
     const enteredPassword = passwordInputRef.current.value;
 
-    console.log("Email:", enteredEmail);
-    console.log("Password:", enteredPassword);
-
     setIsLoading(true);
 
     // ---- Send HTTP request Helper function ----
@@ -63,6 +63,10 @@ const AuthForm = () => {
         // console.log(response);
 
         setIsLoading(false);
+
+        console.log(response);
+
+        history.push("/profile");
 
         return response;
       } catch (error) {
@@ -90,7 +94,7 @@ const AuthForm = () => {
     if (isLogin) {
       const response = await sendRequest(signInWithEmailAndPassword);
 
-      const userIdToken = response._tokenResponse.idToken;
+      const userIdToken = response?._tokenResponse.idToken;
 
       dispatch(
         authActions.login({
