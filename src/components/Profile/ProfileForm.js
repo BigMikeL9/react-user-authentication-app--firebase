@@ -36,10 +36,8 @@ const ProfileForm = () => {
       2. redirect the user to homepage
 */
       dispatch(authActions.logout());
-      history.push("/");
+      history.replace("/");
     } catch (error) {
-      // show error modal
-
       const errorCode = error?.code;
       const errorMessage = error?.message || "Authentication Failed!!";
 

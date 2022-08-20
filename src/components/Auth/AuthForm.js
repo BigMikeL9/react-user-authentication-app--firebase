@@ -66,8 +66,6 @@ const AuthForm = () => {
 
         console.log(response);
 
-        history.push("/profile");
-
         return response;
       } catch (error) {
         // show error modal
@@ -88,6 +86,8 @@ const AuthForm = () => {
     // --- signup new user - mode
     if (!isLogin) {
       sendRequest(createUserWithEmailAndPassword);
+
+      console.log(`user (${enteredEmail}) -- is SIGNED UP 🟡`);
     }
 
     // --- LOGIN - mode
@@ -102,6 +102,14 @@ const AuthForm = () => {
           enteredEmail,
           enteredPassword,
         })
+      );
+
+      // -- Redirect user on login to 'home' page
+      history.replace("/");
+
+      console.log(
+        `user (${enteredEmail}) -- is LOGGED IN 🟢`,
+        `password: ${enteredPassword}`
       );
     }
   };

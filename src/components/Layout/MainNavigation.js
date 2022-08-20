@@ -16,8 +16,16 @@ const MainNavigation = () => {
 
   const logoutHandler = () => {
     // 'action object creator'
+
+    // -- Side note: Firebase doesnt care or doesnt need to know whether a user is login in or not.  The only thing that should change when a user logout, is our app state, in Redux.  The 'token' / 'isLoggedIn' etc states should be null / falsy.
     dispatch(authActions.logout());
-    history.push("/");
+
+    console.log(`user (${authStore.logInStatus.email}) is LOGGED OUT 🔴 `);
+
+    // we could redirect the user to homepage 👇, But used 'navigation guard' instead
+    // history.push("/");
+
+    // 'navigation guard' / Protecting page sin our Front-End App
   };
 
   return (
