@@ -94,6 +94,8 @@ const AuthForm = () => {
     if (isLogin) {
       const response = await sendRequest(signInWithEmailAndPassword);
 
+      if (!response) return;
+
       const userIdToken = response?._tokenResponse.idToken;
 
       dispatch(

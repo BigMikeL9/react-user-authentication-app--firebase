@@ -36,6 +36,7 @@ const ProfileForm = () => {
       2. redirect the user to homepage
 */
       dispatch(authActions.logout());
+
       history.replace("/");
     } catch (error) {
       const errorCode = error?.code;

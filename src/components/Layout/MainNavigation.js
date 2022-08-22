@@ -21,11 +21,6 @@ const MainNavigation = () => {
     dispatch(authActions.logout());
 
     console.log(`user (${authStore.logInStatus.email}) is LOGGED OUT 🔴 `);
-
-    // we could redirect the user to homepage 👇, But used 'navigation guard' instead
-    // history.push("/");
-
-    // 'navigation guard' / Protecting page sin our Front-End App
   };
 
   return (
