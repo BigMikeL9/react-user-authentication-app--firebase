@@ -2,7 +2,11 @@ import { useEffect } from "react";
 import { Switch, Route, Redirect, useHistory } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 
-import { authActions, autoLogoutTimer } from "./store/authSlice";
+import {
+  authActions,
+  autoLogoutTimer,
+  calculateLogout_RemainingTime,
+} from "./store/authSlice";
 
 import Layout from "./components/Layout/Layout";
 import UserProfile from "./components/Profile/UserProfile";
@@ -17,6 +21,7 @@ function App() {
 
   const { logInStatus } = authStore;
 
+  // --- Fetch logInStatus from local storage and autologin user
   useEffect(() => {
     const localeStorage_LoginStatus = localStorage.getItem("logInStatus");
     const localeStorage_LoginStatus_Obj = JSON.parse(localeStorage_LoginStatus);
@@ -25,12 +30,15 @@ function App() {
 
     dispatch(authActions.login(localeStorage_LoginStatus_Obj));
 
-    console.log(localeStorage_LoginStatus_Obj);
-    console.log(localeStorage_LoginStatus_Obj.logoutTimer);
+    console.log("FROM Local Storage:", localeStorage_LoginStatus_Obj);
+    console.log(
+      "FROM Local Storage:",
+      localeStorage_LoginStatus_Obj.futureLogoutTime
+    );
 
     // ----------------
     // -- dispatching a custom 'action creator' function I created in the Redux store to handle the Asynchronous functionality of auto logging-out the user after some time.
-    // dispatch(autoLogoutTimer(localeStorage_LoginStatus_Obj.logoutTimer));
+    dispatch(autoLogoutTimer(localeStorage_LoginStatus_Obj.futureLogoutTime));
     // ----------------
 
     // Redirect user to 'profile'

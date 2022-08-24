@@ -8,15 +8,15 @@ const initialState = {
     token: null,
     email: null,
     password: null,
-    logoutTimer: null,
+    futureLogoutTime: null,
   },
 };
 
 // ------------------------
 // --- Calculate remaining time for 'auto logout' - Helper function
 //  { remaining time } = { futureLogoutTime } - { current time }
-export const calculateLogout_RemainingTime = (futureExpirationTime) => {
-  const remainingTime = futureExpirationTime - Date.now();
+export const calculateLogout_RemainingTime = (futureLogoutTime) => {
+  const remainingTime = futureLogoutTime - Date.now();
 
   return remainingTime;
 };
@@ -27,18 +27,12 @@ const authSlice = createSlice({
   initialState,
   reducers: {
     login(state, action) {
-      const remainingLogoutTime = calculateLogout_RemainingTime(
-        action.payload.logoutTimer
-      );
-
-      console.log(remainingLogoutTime);
-
       state.logInStatus = {
         isLoggedIn: !!action.payload.idToken, // https://stackoverflow.com/questions/29312123/how-does-the-double-exclamation-work-in-javascript
         token: action.payload.idToken,
         email: action.payload.email,
         password: action.payload.password,
-        logoutTimer: action.payload.logoutTimer,
+        futureLogoutTime: action.payload.futureLogoutTime,
       };
 
       // -- store authentication status in 'localStorage'
@@ -49,7 +43,7 @@ const authSlice = createSlice({
           idToken: action.payload.idToken,
           email: action.payload.email,
           password: action.payload.password,
-          logoutTimer: action.payload.logoutTimer,
+          futureLogoutTime: action.payload.futureLogoutTime,
         })
       );
 
@@ -63,7 +57,7 @@ const authSlice = createSlice({
         token: null,
         email: null,
         password: null,
-        logoutTimer: null,
+        futureLogoutTime: null,
       };
 
       userManuallyLoggedOut = true;
@@ -79,15 +73,15 @@ const authSlice = createSlice({
 
 // ------------------------
 // Creating an 'action creator' to run asynchronous code in Redux Store
-export const autoLogoutTimer = (expirationTime) => {
+export const autoLogoutTimer = (futureLogoutTime) => {
   return (dispatch) => {
-    const remainingLogoutTime = calculateLogout_RemainingTime(expirationTime);
+    const remainingLogoutTime = calculateLogout_RemainingTime(futureLogoutTime);
 
     console.log("remainingTime", remainingLogoutTime);
 
     const runLater = setTimeout(() => {
       dispatch(authActions.logout());
-      console.log("AUTO LOGGED OUT after: ", `${expirationTime / 1000}s`);
+      console.log("AUTO LOGGED OUT ");
     }, remainingLogoutTime);
 
     if (userManuallyLoggedOut) clearTimeout(runLater);

@@ -41,7 +41,6 @@ const AuthForm = () => {
 
   // ---- Initialize Firebase Authentication and get a reference to the service
   const auth = getAuth(app);
-  // console.log(auth);
 
   const switchAuthModeHandler = () => {
     setIsLogin((prevState) => !prevState);
@@ -95,23 +94,23 @@ const AuthForm = () => {
       const userIdToken = response?._tokenResponse.idToken;
       const defaultFirebaseTimeout = response?._tokenResponse.expiresIn;
 
-      // logout timer in seconds (1 hour) 👇
-      const logoutTimerInSeconds = Date.now() + 60 * 1000;
+      // Future logout time in seconds (1 hour) 👇
+      const futureLogoutTime = Date.now() + 20 * 1000;
 
-      // console.log(logoutTimerInSeconds);
+      console.log(futureLogoutTime);
 
       dispatch(
         authActions.login({
           idToken: userIdToken,
           email: enteredEmail,
           password: enteredPassword,
-          logoutTimer: logoutTimerInSeconds,
+          futureLogoutTime,
         })
       );
 
       // ----------------
       // -- dispatching a custom 'action creator' function I created in the Redux store to handle the Asynchronous functionality of auto logging-out the user after some time.
-      dispatch(autoLogoutTimer(logoutTimerInSeconds));
+      dispatch(autoLogoutTimer(futureLogoutTime));
       // ----------------
 
       // -- Redirect user on login to 'home' page
