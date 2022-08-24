@@ -1,42 +1,24 @@
 import { createSlice, current } from "@reduxjs/toolkit";
 
-let userManuallyLoggedOut;
-let remainingLogoutTime;
+let logoutTimer;
 
-// ------------------------
-// --- Calculate remaining time for 'auto logout' - Helper function
-//  { remaining time } = { futureLogoutTime } - { current time }
-export const calculateLogout_RemainingTime = (futureExpirationTime) => {
-  const remainingTime = futureExpirationTime - Date.now();
-
-  return remainingTime;
-};
-
-// ------------------------
-// Creating an 'action creator' to run asynchronous code in Redux Store
-export const autoLogoutTimer = (expirationTime) => {
-  return (dispatch) => {
-    remainingLogoutTime = calculateLogout_RemainingTime(expirationTime);
-
-    console.log("remainingTime", remainingLogoutTime);
-
-    const runLater = setTimeout(() => {
-      dispatch(authActions.logout());
-      console.log("AUTO LOGGED OUT after: ", `${expirationTime / 1000}s`);
-    }, remainingLogoutTime);
-
-    if (userManuallyLoggedOut) clearTimeout(runLater);
-  };
-};
-
-// ------------------------
 const initialState = {
   logInStatus: {
     isLoggedIn: false,
     token: null,
     email: null,
     password: null,
+    futureLogoutTime: null,
   },
+};
+
+// ------------------------
+// --- Calculate remaining time for 'auto logout' - Helper function
+//  { remaining time } = { futureLogoutTime } - { current time }
+export const calculateLogout_RemainingTime = (futureLogoutTime) => {
+  const remainingTime = futureLogoutTime - Date.now();
+
+  return remainingTime;
 };
 
 // ------------------------
@@ -50,10 +32,8 @@ const authSlice = createSlice({
         token: action.payload.idToken,
         email: action.payload.email,
         password: action.payload.password,
-        logoutTimer: action.payload.logoutTimer,
+        futureLogoutTime: action.payload.futureLogoutTime,
       };
-
-      console.log(remainingLogoutTime);
 
       // -- store authentication status in 'localStorage'
       localStorage.setItem(
@@ -63,7 +43,7 @@ const authSlice = createSlice({
           idToken: action.payload.idToken,
           email: action.payload.email,
           password: action.payload.password,
-          logoutTimer: action.payload.logoutTimer,
+          futureLogoutTime: action.payload.futureLogoutTime,
         })
       );
 
@@ -77,19 +57,34 @@ const authSlice = createSlice({
         token: null,
         email: null,
         password: null,
-        logoutTimer: null,
+        futureLogoutTime: null,
       };
-
-      userManuallyLoggedOut = true;
 
       // remove user logInStatus from localeStorage
       localStorage.removeItem("logInStatus");
+
+      if (logoutTimer) clearTimeout(logoutTimer);
 
       console.log(current(state));
       console.log(action);
     },
   },
 });
+
+// ------------------------
+// Creating an 'action creator' to run asynchronous code in Redux Store
+export const autoLogoutTimer = (futureLogoutTime) => {
+  return (dispatch) => {
+    const remainingLogoutTime = calculateLogout_RemainingTime(futureLogoutTime);
+
+    console.log("remainingTime", remainingLogoutTime);
+
+    logoutTimer = setTimeout(() => {
+      dispatch(authActions.logout());
+      console.log("AUTO LOGGED OUT ");
+    }, remainingLogoutTime);
+  };
+};
 
 export const authActions = authSlice.actions;
 
