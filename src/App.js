@@ -30,7 +30,7 @@ function App() {
 
     // ----------------
     // -- dispatching a custom 'action creator' function I created in the Redux store to handle the Asynchronous functionality of auto logging-out the user after some time.
-    // dispatch(autoLogoutTimer(localeStorage_LoginStatus_Obj.logoutTimer));
+    dispatch(autoLogoutTimer(localeStorage_LoginStatus_Obj.logoutTimer));
     // ----------------
 
     // Redirect user to 'profile'

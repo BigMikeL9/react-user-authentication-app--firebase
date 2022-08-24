@@ -1,16 +1,7 @@
 import { createSlice, current } from "@reduxjs/toolkit";
 
 let userManuallyLoggedOut;
-
-const initialState = {
-  logInStatus: {
-    isLoggedIn: false,
-    token: null,
-    email: null,
-    password: null,
-    logoutTimer: null,
-  },
-};
+let remainingLogoutTime;
 
 // ------------------------
 // --- Calculate remaining time for 'auto logout' - Helper function
@@ -22,17 +13,38 @@ export const calculateLogout_RemainingTime = (futureExpirationTime) => {
 };
 
 // ------------------------
+// Creating an 'action creator' to run asynchronous code in Redux Store
+export const autoLogoutTimer = (expirationTime) => {
+  return (dispatch) => {
+    remainingLogoutTime = calculateLogout_RemainingTime(expirationTime);
+
+    console.log("remainingTime", remainingLogoutTime);
+
+    const runLater = setTimeout(() => {
+      dispatch(authActions.logout());
+      console.log("AUTO LOGGED OUT after: ", `${expirationTime / 1000}s`);
+    }, remainingLogoutTime);
+
+    if (userManuallyLoggedOut) clearTimeout(runLater);
+  };
+};
+
+// ------------------------
+const initialState = {
+  logInStatus: {
+    isLoggedIn: false,
+    token: null,
+    email: null,
+    password: null,
+  },
+};
+
+// ------------------------
 const authSlice = createSlice({
   name: "auth",
   initialState,
   reducers: {
     login(state, action) {
-      const remainingLogoutTime = calculateLogout_RemainingTime(
-        action.payload.logoutTimer
-      );
-
-      console.log(remainingLogoutTime);
-
       state.logInStatus = {
         isLoggedIn: !!action.payload.idToken, // https://stackoverflow.com/questions/29312123/how-does-the-double-exclamation-work-in-javascript
         token: action.payload.idToken,
@@ -40,6 +52,8 @@ const authSlice = createSlice({
         password: action.payload.password,
         logoutTimer: action.payload.logoutTimer,
       };
+
+      console.log(remainingLogoutTime);
 
       // -- store authentication status in 'localStorage'
       localStorage.setItem(
@@ -76,23 +90,6 @@ const authSlice = createSlice({
     },
   },
 });
-
-// ------------------------
-// Creating an 'action creator' to run asynchronous code in Redux Store
-export const autoLogoutTimer = (expirationTime) => {
-  return (dispatch) => {
-    const remainingLogoutTime = calculateLogout_RemainingTime(expirationTime);
-
-    console.log("remainingTime", remainingLogoutTime);
-
-    const runLater = setTimeout(() => {
-      dispatch(authActions.logout());
-      console.log("AUTO LOGGED OUT after: ", `${expirationTime / 1000}s`);
-    }, remainingLogoutTime);
-
-    if (userManuallyLoggedOut) clearTimeout(runLater);
-  };
-};
 
 export const authActions = authSlice.actions;
 
