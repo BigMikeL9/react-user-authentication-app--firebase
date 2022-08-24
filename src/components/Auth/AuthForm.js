@@ -7,7 +7,7 @@ import {
 } from "firebase/auth";
 
 import { useSelector, useDispatch } from "react-redux";
-import { authActions } from "../../store/authSlice";
+import { authActions, autoLogoutTimer } from "../../store/authSlice";
 import { useHistory } from "react-router-dom";
 
 import classes from "./AuthForm.module.css";
@@ -60,11 +60,7 @@ const AuthForm = () => {
       try {
         const response = await callback(auth, enteredEmail, enteredPassword);
 
-        // console.log(response);
-
         setIsLoading(false);
-
-        console.log(response);
 
         return response;
       } catch (error) {
@@ -97,14 +93,26 @@ const AuthForm = () => {
       if (!response) return;
 
       const userIdToken = response?._tokenResponse.idToken;
+      const defaultFirebaseTimeout = response?._tokenResponse.expiresIn;
+
+      // logout timer in seconds (1 hour) 👇
+      const logoutTimerInSeconds = Date.now() + 60 * 1000;
+
+      // console.log(logoutTimerInSeconds);
 
       dispatch(
         authActions.login({
           idToken: userIdToken,
-          enteredEmail,
-          enteredPassword,
+          email: enteredEmail,
+          password: enteredPassword,
+          logoutTimer: logoutTimerInSeconds,
         })
       );
+
+      // ----------------
+      // -- dispatching a custom 'action creator' function I created in the Redux store to handle the Asynchronous functionality of auto logging-out the user after some time.
+      dispatch(autoLogoutTimer(logoutTimerInSeconds));
+      // ----------------
 
       // -- Redirect user on login to 'home' page
       history.replace("/");
